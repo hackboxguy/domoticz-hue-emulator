@@ -4,6 +4,8 @@ Control your Domoticz home automation devices with Amazon Alexa voice commands -
 
 This project emulates a Philips Hue Bridge on your local network, allowing Alexa to discover and control your Domoticz devices as if they were Hue lights. Device commands stay on your local network (Echo → Emulator → Domoticz), though Alexa still requires internet for voice recognition.
 
+![hue emulator for domoticz diagram](images/domoticz-hue-emulator.png)
+
 ## Features
 
 - **Local Device Control** - No Philips Hue cloud, no subscriptions, no third-party skills
