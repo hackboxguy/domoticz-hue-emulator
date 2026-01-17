@@ -357,6 +357,12 @@ scenes:
 EOF
 
     chmod 600 "$CONFIG_FILE"  # Restrict access (contains credentials)
+
+    # Change ownership to the user who ran sudo (so they can edit without sudo)
+    if [ -n "$SUDO_USER" ]; then
+        chown "$SUDO_USER:$SUDO_USER" "$CONFIG_FILE"
+    fi
+
     info "Configuration created at $CONFIG_FILE"
     warn "Edit $CONFIG_FILE to add your devices!"
 }
