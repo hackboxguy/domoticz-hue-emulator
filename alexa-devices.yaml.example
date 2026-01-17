@@ -1,0 +1,77 @@
+# Domoticz Hue Emulator Configuration
+# ====================================
+# Copy this file to alexa-devices.yaml and customize for your setup.
+#
+# This file configures devices and scenes that Alexa can control
+# via the Philips Hue emulation bridge.
+
+# Domoticz Server Configuration
+domoticz:
+  url: "http://YOUR_DOMOTICZ_IP:8080"
+  username: "YOUR_USERNAME"
+  password: "YOUR_PASSWORD"
+
+# Hue Bridge Emulator Settings
+bridge:
+  port: 80                    # Port for Hue API (Alexa expects 80)
+  ip: null                    # Auto-detect, or set like "192.168.1.100"
+
+# Devices Configuration
+# ---------------------
+# Each device maps to a Domoticz device by its IDX
+#
+# Types:
+#   - switch: On/Off only
+#   - dimmer: On/Off + Brightness
+#   - rgb: On/Off + Brightness + Color (for RGBWW lights)
+#
+# Voice commands:
+#   "Alexa, turn on <name>"
+#   "Alexa, set <name> to 50 percent"
+#   "Alexa, set <name> to red" (rgb only)
+#   "Alexa, set <name> to warm white" (rgb only)
+
+devices:
+  # Example RGB/RGBWW light
+  - name: "Light"
+    idx: 10
+    type: rgb
+
+  # Example switch
+  - name: "Kitchen Light"
+    idx: 20
+    type: switch
+
+  # Example dimmer
+  - name: "Bedroom Light"
+    idx: 30
+    type: dimmer
+
+# Scenes Configuration
+# --------------------
+# Scenes/Groups trigger Domoticz scenes or groups
+# Use Groups (not Scenes) if you need both On and Off support
+#
+# Find scene/group IDX in Domoticz: Setup > More Options > Scenes/Groups
+#
+# Voice commands:
+#   "Alexa, turn on <name>"    -> Activates the scene/group
+#   "Alexa, turn off <name>"   -> Deactivates (groups only)
+
+scenes:
+  # Example group (supports on/off)
+  - name: "All Lights"
+    idx: 1
+    description: "Controls all lights"
+
+# Alexa Routines Tip
+# ------------------
+# For custom phrases like "Alexa, let's start the party":
+# 1. Create a scene above named "Party Mode"
+# 2. Open the Alexa app on your phone
+# 3. Go to: More > Routines > + (create)
+# 4. When this happens: Voice > "let's start the party"
+# 5. Add action: Smart Home > Control device > "Party Mode" > Turn On
+# 6. Save
+#
+# Now "Alexa, let's start the party" will trigger your Domoticz scene!

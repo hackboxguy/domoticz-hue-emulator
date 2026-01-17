@@ -1,0 +1,12 @@
+[Unit]
+Description=Domoticz Hue Emulator - Control Domoticz via Alexa
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/pi/domoticz-hue-emulator/domoticz-hue-emulator.py --config=/home/pi/domoticz-hue-emulator/alexa-devices.yaml
+WorkingDirectory=/home/pi/domoticz-hue-emulator
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
