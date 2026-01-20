@@ -8,6 +8,8 @@ Usage:
 """
 
 import argparse
+import base64
+import hashlib
 import socket
 import struct
 import threading
@@ -102,13 +104,10 @@ class DomoticzController:
         self.session = requests.Session()
         self._logged_in = False
 
-    def _ensure_login(self):
-        """Login to Domoticz if credentials are provided."""
-        if self._logged_in or not self.username:
+    def _login(self):
+        """Login to Domoticz."""
+        if not self.username:
             return True
-
-        import base64
-        import hashlib
 
         url = f"{self.base_url}/json.htm"
         params = {
@@ -126,10 +125,28 @@ class DomoticzController:
                 return True
             else:
                 logger.error(f"Domoticz login failed: {data}")
+                self._logged_in = False
                 return False
         except Exception as e:
             logger.error(f"Domoticz login error: {e}")
+            self._logged_in = False
             return False
+
+    def _ensure_login(self):
+        """Login to Domoticz if not already logged in."""
+        if self._logged_in:
+            return True
+        return self._login()
+
+    def _handle_401_and_retry(self, request_func):
+        """Execute request, re-authenticate on 401, and retry once."""
+        response = request_func()
+        if response is not None and response.status_code == 401:
+            logger.info("Session expired (401), re-authenticating...")
+            self._logged_in = False
+            if self._login():
+                response = request_func()
+        return response
 
     def switch_light(self, idx, command):
         """Turn a switch on or off."""
@@ -142,7 +159,10 @@ class DomoticzController:
             "switchcmd": "On" if command else "Off"
         }
         try:
-            response = self.session.get(url, params=params, timeout=5)
+            def make_request():
+                return self.session.get(url, params=params, timeout=5)
+
+            response = self._handle_401_and_retry(make_request)
             logger.info(f"Domoticz switch {idx} -> {'On' if command else 'Off'}: {response.status_code}")
             return response.status_code == 200
         except Exception as e:
@@ -160,7 +180,10 @@ class DomoticzController:
             "switchcmd": "On" if command else "Off"
         }
         try:
-            response = self.session.get(url, params=params, timeout=5)
+            def make_request():
+                return self.session.get(url, params=params, timeout=5)
+
+            response = self._handle_401_and_retry(make_request)
             logger.info(f"Domoticz scene {idx} -> {'On' if command else 'Off'}: {response.status_code}")
             return response.status_code == 200
         except Exception as e:
@@ -179,7 +202,10 @@ class DomoticzController:
             "level": level
         }
         try:
-            response = self.session.get(url, params=params, timeout=5)
+            def make_request():
+                return self.session.get(url, params=params, timeout=5)
+
+            response = self._handle_401_and_retry(make_request)
             logger.info(f"Domoticz dimmer {idx} -> {level}%: {response.status_code}")
             return response.status_code == 200
         except Exception as e:
@@ -207,7 +233,10 @@ class DomoticzController:
             params["brightness"] = int(brightness * 100 / 254)
 
         try:
-            response = self.session.get(url, params=params, timeout=5)
+            def make_request():
+                return self.session.get(url, params=params, timeout=5)
+
+            response = self._handle_401_and_retry(make_request)
             logger.info(f"Domoticz RGB {idx} -> hue={params.get('hue')}, sat={params.get('saturation')}, bri={params.get('brightness')}: {response.status_code}")
             return response.status_code == 200
         except Exception as e:
@@ -249,7 +278,10 @@ class DomoticzController:
         }
 
         try:
-            response = self.session.get(url, params=params, timeout=5)
+            def make_request():
+                return self.session.get(url, params=params, timeout=5)
+
+            response = self._handle_401_and_retry(make_request)
             logger.info(f"Domoticz White {idx} -> cw={cw}, ww={ww}, bri={bri_level}%: {response.status_code}")
             return response.status_code == 200
         except Exception as e:
@@ -269,7 +301,10 @@ class DomoticzController:
             "level": level
         }
         try:
-            response = self.session.get(url, params=params, timeout=5)
+            def make_request():
+                return self.session.get(url, params=params, timeout=5)
+
+            response = self._handle_401_and_retry(make_request)
             logger.info(f"Domoticz brightness {idx} -> {level}%: {response.status_code}")
             return response.status_code == 200
         except Exception as e:
@@ -287,7 +322,10 @@ class DomoticzController:
             params = {"type": "command", "param": "getdevices", "rid": idx}
 
         try:
-            response = self.session.get(url, params=params, timeout=5)
+            def make_request():
+                return self.session.get(url, params=params, timeout=5)
+
+            response = self._handle_401_and_retry(make_request)
             data = response.json()
 
             if is_scene:
